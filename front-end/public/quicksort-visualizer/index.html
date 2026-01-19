@@ -456,19 +456,25 @@
       state.isSorting = true;
       setButtonsDisabled(true);
 
+      // ソート開始時刻を記録
+      const startTime = performance.now();
+
       updateStatus('クイックソートを開始します...');
       await sleep(500);
 
       await quickSort(0, state.array.length - 1);
 
       if (state.isSorting) {
+        // 経過時間を計算（秒単位、小数点2桁）
+        const elapsedTime = ((performance.now() - startTime) / 1000).toFixed(2);
+
         // すべてのバーをソート完了としてマーク
         const bars = visualizer.querySelectorAll('.bar');
         bars.forEach(bar => {
           bar.classList.remove('comparing', 'swapping', 'pivot');
           bar.classList.add('sorted');
         });
-        updateStatus('🎉 ソート完了！');
+        updateStatus(`🎉 ソート完了！（${elapsedTime} 秒）`);
       }
 
       state.isSorting = false;
