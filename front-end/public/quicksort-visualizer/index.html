@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quicksort Visualizer</title>
+  <style>
+    /* 全体のスタイル設定 */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      min-height: 100vh;
+      color: #fff;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 2rem;
+      background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* バー表示エリア */
+    .visualizer {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      min-height: 350px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 2px;
+    }
+
+    .bar {
+      background: linear-gradient(180deg, #00d4ff 0%, #0099cc 100%);
+      border-radius: 4px 4px 0 0;
+      transition: height 0.1s ease, background 0.2s ease;
+      min-width: 8px;
+      flex: 1;
+      max-width: 30px;
+    }
+
+    /* ピボット要素のスタイル */
+    .bar.pivot {
+      background: linear-gradient(180deg, #ff6b6b 0%, #c92a2a 100%);
+      box-shadow: 0 0 15px rgba(255, 107, 107, 0.5);
+    }
+
+    /* 比較中の要素のスタイル */
+    .bar.comparing {
+      background: linear-gradient(180deg, #ffd43b 0%, #fab005 100%);
+      box-shadow: 0 0 10px rgba(255, 212, 59, 0.5);
+    }
+
+    /* スワップ中の要素のスタイル */
+    .bar.swapping {
+      background: linear-gradient(180deg, #51cf66 0%, #2f9e44 100%);
+      box-shadow: 0 0 10px rgba(81, 207, 102, 0.5);
+    }
+
+    /* ソート完了した要素のスタイル */
+    .bar.sorted {
+      background: linear-gradient(180deg, #7b2cbf 0%, #5a189a 100%);
+    }
+
+    /* コントロールパネル */
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    button {
+      padding: 12px 24px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      font-weight: 600;
+    }
+
+    button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-generate {
+      background: linear-gradient(135deg, #00d4ff, #0099cc);
+      color: #fff;
+    }
+
+    .btn-sort {
+      background: linear-gradient(135deg, #51cf66, #2f9e44);
+      color: #fff;
+    }
+
+    .btn-reset {
+      background: linear-gradient(135deg, #ff6b6b, #c92a2a);
+      color: #fff;
+    }
+
+    /* スピード調整スライダー */
+    .speed-control {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 10px 16px;
+      border-radius: 8px;
+    }
+
+    .speed-control label {
+      font-size: 0.9rem;
+      white-space: nowrap;
+    }
+
+    input[type="range"] {
+      width: 120px;
+      cursor: pointer;
+    }
+
+    /* ステップ説明テキスト */
+    .status {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+      min-height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .status-text {
+      font-size: 1.1rem;
+      line-height: 1.5;
+    }
+
+    /* 凡例 */
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      justify-content: center;
+      margin-bottom: 20px;
+      font-size: 0.9rem;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .legend-color {
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+    }
+
+    .legend-color.default {
+      background: linear-gradient(180deg, #00d4ff 0%, #0099cc 100%);
+    }
+
+    .legend-color.pivot {
+      background: linear-gradient(180deg, #ff6b6b 0%, #c92a2a 100%);
+    }
+
+    .legend-color.comparing {
+      background: linear-gradient(180deg, #ffd43b 0%, #fab005 100%);
+    }
+
+    .legend-color.swapping {
+      background: linear-gradient(180deg, #51cf66 0%, #2f9e44 100%);
+    }
+
+    .legend-color.sorted {
+      background: linear-gradient(180deg, #7b2cbf 0%, #5a189a 100%);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔀 Quicksort Visualizer</h1>
+
+    <!-- 凡例 -->
+    <div class="legend">
+      <div class="legend-item">
+        <div class="legend-color default"></div>
+        <span>未ソート</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color pivot"></div>
+        <span>ピボット</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color comparing"></div>
+        <span>比較中</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color swapping"></div>
+        <span>スワップ</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color sorted"></div>
+        <span>ソート完了</span>
+      </div>
+    </div>
+
+    <!-- 可視化エリア -->
+    <div class="visualizer" id="visualizer"></div>
+
+    <!-- コントロールパネル -->
+    <div class="controls">
+      <button class="btn-generate" id="generateBtn">新しい配列を生成</button>
+      <button class="btn-sort" id="sortBtn">ソート開始</button>
+      <button class="btn-reset" id="resetBtn">リセット</button>
+      <div class="speed-control">
+        <label for="speedSlider">速度:</label>
+        <input type="range" id="speedSlider" min="1" max="100" value="50">
+        <span id="speedValue">50</span>
+      </div>
+    </div>
+
+    <!-- ステップ説明 -->
+    <div class="status">
+      <p class="status-text" id="statusText">「新しい配列を生成」または「ソート開始」をクリックしてください</p>
+    </div>
+  </div>
+
+  <script>
+    // アプリケーションの状態管理
+    const state = {
+      array: [],           // ソート対象の配列
+      originalArray: [],   // リセット用の元配列
+      isSorting: false,    // ソート中フラグ
+      speed: 50            // アニメーション速度
+    };
+
+    // DOM要素の取得
+    const visualizer = document.getElementById('visualizer');
+    const generateBtn = document.getElementById('generateBtn');
+    const sortBtn = document.getElementById('sortBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const speedSlider = document.getElementById('speedSlider');
+    const speedValue = document.getElementById('speedValue');
+    const statusText = document.getElementById('statusText');
+
+    /**
+     * ランダムな配列を生成する
+     * @param {number} size - 配列のサイズ
+     * @param {number} max - 最大値
+     * @returns {number[]} ランダムな数値の配列
+     */
+    function generateRandomArray(size = 30, max = 300) {
+      return Array.from({ length: size }, () => Math.floor(Math.random() * max) + 10);
+    }
+
+    /**
+     * 配列をバーとして描画する
+     */
+    function renderBars() {
+      visualizer.innerHTML = '';
+      const maxValue = Math.max(...state.array);
+
+      state.array.forEach((value, index) => {
+        const bar = document.createElement('div');
+        bar.className = 'bar';
+        bar.style.height = `${(value / maxValue) * 300}px`;
+        bar.dataset.index = index;
+        visualizer.appendChild(bar);
+      });
+    }
+
+    /**
+     * 指定したインデックスのバーにクラスを設定する
+     * @param {number[]} indices - インデックスの配列
+     * @param {string} className - 追加するクラス名
+     */
+    function highlightBars(indices, className) {
+      const bars = visualizer.querySelectorAll('.bar');
+      indices.forEach(index => {
+        if (bars[index]) {
+          bars[index].classList.add(className);
+        }
+      });
+    }
+
+    /**
+     * すべてのバーからハイライトクラスを除去する
+     */
+    function clearHighlights() {
+      const bars = visualizer.querySelectorAll('.bar');
+      bars.forEach(bar => {
+        bar.classList.remove('pivot', 'comparing', 'swapping');
+      });
+    }
+
+    /**
+     * 指定した時間待機する
+     * @param {number} ms - 待機時間（ミリ秒）
+     */
+    function sleep(ms) {
+      // 速度スライダーの値に基づいて待機時間を調整
+      // 速度が高いほど待機時間は短い
+      const adjustedMs = ms * (101 - state.speed) / 50;
+      return new Promise(resolve => setTimeout(resolve, adjustedMs));
+    }
+
+    /**
+     * 配列の2つの要素を交換する
+     * @param {number} i - インデックス1
+     * @param {number} j - インデックス2
+     */
+    async function swap(i, j) {
+      // 配列内の値を交換
+      [state.array[i], state.array[j]] = [state.array[j], state.array[i]];
+
+      // バーの高さを更新
+      const bars = visualizer.querySelectorAll('.bar');
+      const maxValue = Math.max(...state.array);
+      bars[i].style.height = `${(state.array[i] / maxValue) * 300}px`;
+      bars[j].style.height = `${(state.array[j] / maxValue) * 300}px`;
+    }
+
+    /**
+     * ステータステキストを更新する
+     * @param {string} text - 表示するテキスト
+     */
+    function updateStatus(text) {
+      statusText.textContent = text;
+    }
+
+    /**
+     * クイックソートのパーティション処理
+     * @param {number} low - 開始インデックス
+     * @param {number} high - 終了インデックス
+     * @returns {number} ピボットの最終位置
+     */
+    async function partition(low, high) {
+      // 最後の要素をピボットとして選択
+      const pivot = state.array[high];
+      highlightBars([high], 'pivot');
+      updateStatus(`ピボット ${pivot} を選択（インデックス ${high}）`);
+      await sleep(300);
+
+      let i = low - 1;
+
+      for (let j = low; j < high; j++) {
+        // ソートが中断された場合は終了
+        if (!state.isSorting) return -1;
+
+        clearHighlights();
+        highlightBars([high], 'pivot');
+        highlightBars([j], 'comparing');
+        updateStatus(`${state.array[j]} と ピボット ${pivot} を比較中...`);
+        await sleep(200);
+
+        if (state.array[j] < pivot) {
+          i++;
+          if (i !== j) {
+            // スワップが必要な場合
+            highlightBars([i, j], 'swapping');
+            updateStatus(`${state.array[i]} と ${state.array[j]} をスワップ`);
+            await sleep(200);
+            await swap(i, j);
+            await sleep(100);
+          }
+        }
+      }
+
+      // ピボットを正しい位置に移動
+      if (i + 1 !== high) {
+        clearHighlights();
+        highlightBars([i + 1, high], 'swapping');
+        updateStatus(`ピボット ${pivot} を位置 ${i + 1} に移動`);
+        await sleep(200);
+        await swap(i + 1, high);
+        await sleep(100);
+      }
+
+      // ピボットの位置をソート完了としてマーク
+      const bars = visualizer.querySelectorAll('.bar');
+      bars[i + 1].classList.add('sorted');
+
+      return i + 1;
+    }
+
+    /**
+     * クイックソートのメイン処理（再帰）
+     * @param {number} low - 開始インデックス
+     * @param {number} high - 終了インデックス
+     */
+    async function quickSort(low, high) {
+      if (low < high && state.isSorting) {
+        updateStatus(`範囲 [${low}, ${high}] をソート中...`);
+
+        // パーティション処理
+        const pivotIndex = await partition(low, high);
+
+        // ソートが中断された場合は終了
+        if (pivotIndex === -1) return;
+
+        clearHighlights();
+
+        // 左側の部分配列をソート
+        await quickSort(low, pivotIndex - 1);
+
+        // 右側の部分配列をソート
+        await quickSort(pivotIndex + 1, high);
+      } else if (low === high && state.isSorting) {
+        // 単一要素の場合、ソート完了としてマーク
+        const bars = visualizer.querySelectorAll('.bar');
+        if (bars[low]) {
+          bars[low].classList.add('sorted');
+        }
+      }
+    }
+
+    /**
+     * ソートを開始する
+     */
+    async function startSort() {
+      if (state.array.length === 0) {
+        // 配列がない場合は新しく生成
+        state.array = generateRandomArray();
+        state.originalArray = [...state.array];
+        renderBars();
+      }
+
+      state.isSorting = true;
+      setButtonsDisabled(true);
+
+      updateStatus('クイックソートを開始します...');
+      await sleep(500);
+
+      await quickSort(0, state.array.length - 1);
+
+      if (state.isSorting) {
+        // すべてのバーをソート完了としてマーク
+        const bars = visualizer.querySelectorAll('.bar');
+        bars.forEach(bar => {
+          bar.classList.remove('comparing', 'swapping', 'pivot');
+          bar.classList.add('sorted');
+        });
+        updateStatus('🎉 ソート完了！');
+      }
+
+      state.isSorting = false;
+      setButtonsDisabled(false);
+    }
+
+    /**
+     * 新しい配列を生成する
+     */
+    function generateNewArray() {
+      if (state.isSorting) return;
+
+      state.array = generateRandomArray();
+      state.originalArray = [...state.array];
+      renderBars();
+      updateStatus('新しい配列を生成しました。「ソート開始」をクリックしてください。');
+    }
+
+    /**
+     * 配列を元の状態にリセットする
+     */
+    function resetArray() {
+      state.isSorting = false;
+      state.array = [...state.originalArray];
+      renderBars();
+      setButtonsDisabled(false);
+      updateStatus('配列をリセットしました。「ソート開始」をクリックしてください。');
+    }
+
+    /**
+     * ボタンの有効/無効を切り替える
+     * @param {boolean} disabled - 無効にするかどうか
+     */
+    function setButtonsDisabled(disabled) {
+      generateBtn.disabled = disabled;
+      sortBtn.disabled = disabled;
+      // リセットボタンは常に有効（ソート中断用）
+      resetBtn.disabled = false;
+    }
+
+    // イベントリスナーの設定
+    generateBtn.addEventListener('click', generateNewArray);
+    sortBtn.addEventListener('click', startSort);
+    resetBtn.addEventListener('click', resetArray);
+
+    speedSlider.addEventListener('input', (e) => {
+      state.speed = parseInt(e.target.value);
+      speedValue.textContent = state.speed;
+    });
+
+    // 初期配列の生成
+    generateNewArray();
+  </script>
+</body>
+</html>

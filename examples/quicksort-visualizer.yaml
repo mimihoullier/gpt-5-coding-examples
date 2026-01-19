@@ -1,0 +1,11 @@
+id: quicksort-visualizer
+title: Quicksort Visualizer
+prompt: |
+  Create a single-page app in a single HTML file that visualizes the quicksort algorithm.
+  - Show an array as vertical bars
+  - Animate each step: pivot selection, comparisons, swaps
+  - Include controls: generate new array, start sort, reset, speed slider
+  - Display explanation text for each step
+tags:
+  - interactive
+  - educational
